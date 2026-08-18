@@ -1,0 +1,21 @@
+[submodule "plugins/dsh-agent-registry"]
+	path = plugins/dsh-agent-registry
+	url = https://github.com/xingyingyuzhui/dsh-agent-registry.git
+[submodule "plugins/dsh-agent-identity"]
+	path = plugins/dsh-agent-identity
+	url = https://github.com/xingyingyuzhui/dsh-agent-identity.git
+[submodule "plugins/dsh-agent-policy"]
+	path = plugins/dsh-agent-policy
+	url = https://github.com/xingyingyuzhui/dsh-agent-policy.git
+[submodule "plugins/dsh-session-permissions"]
+	path = plugins/dsh-session-permissions
+	url = https://github.com/xingyingyuzhui/dsh-session-permissions.git
+[submodule "plugins/dsh-agent-gate"]
+	path = plugins/dsh-agent-gate
+	url = https://github.com/xingyingyuzhui/dsh-agent-gate.git
+[submodule "plugins/dsh-agent-delegate"]
+	path = plugins/dsh-agent-delegate
+	url = https://github.com/xingyingyuzhui/dsh-agent-delegate.git
+[submodule "plugins/dsh-agent-memory"]
+	path = plugins/dsh-agent-memory
+	url = https://github.com/xingyingyuzhui/dsh-agent-memory.git
