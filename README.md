@@ -10,7 +10,7 @@
 |---|---|---|
 | 是什么 | 普通项目目录 | 按名字组织的专属 Agent |
 | 目录 | 你的项目路径 | `~/.dsh/DSclaw/<名字>/` |
-| 预设 | 官方四个：研究 / 编程 / 终端 / 全部权限 | 只跑自己的 `wa-*`，不进官方「Agent 预设」名单 |
+| 预设 | 官方四个：研究 / 编程 / 终端 / 全部权限 | 会话挂官方 `standard`；`wa-*` 只是登记标签，不进官方名单 |
 | 权限 | 默认可到官方最高；本会话仍可收紧 | 官方 ∩ Agent ∩ 本会话，再套一层 Claw 硬顶 |
 | 人设 / 记忆 | 无这套私有文件 | SOUL、AGENTS、MEMORY 等 |
 
@@ -20,7 +20,8 @@
 
 | 插件 | 职责 | 不做什么 |
 |---|---|---|
-| [dsh-agent-registry](https://github.com/xingyingyuzhui/dsh-agent-registry) | 登记、侧栏分区、官方名单隔离、设置页、归档 | 不拦截工具 |
+| [dsh-observability](https://github.com/xingyingyuzhui/dsh-observability) | 共用诊断日志，其它包同级引用 | 不拦截、不改界面 |
+| [dsh-agent-registry](https://github.com/xingyingyuzhui/dsh-agent-registry) | 登记、侧栏分区、官方名单隔离、设置页、归档；启动时清掉旧 `wa-*` 用户预设 | 不拦截工具 |
 | [dsh-agent-identity](https://github.com/xingyingyuzhui/dsh-agent-identity) | 把 SOUL / IDENTITY / AGENTS / TOOLS 打进该会话提示词 | 不拦截工具；不管 USER / MEMORY 注入 |
 | [dsh-agent-policy](https://github.com/xingyingyuzhui/dsh-agent-policy) | 策略 schema、预设模板、MCP 初始化默认 | 不执行拒绝 |
 | [dsh-session-permissions](https://github.com/xingyingyuzhui/dsh-session-permissions) | 会话「权限」tab；计算三层交集 | 只展示和记录，真正拦截在闸 |
@@ -37,6 +38,7 @@
 本机已能跑 `dsh web`。按这个顺序加进 web profile：
 
 ```sh
+dsh plugin --profile web add github:xingyingyuzhui/dsh-observability
 dsh plugin --profile web add github:xingyingyuzhui/dsh-agent-registry
 dsh plugin --profile web add github:xingyingyuzhui/dsh-agent-identity
 dsh plugin --profile web add github:xingyingyuzhui/dsh-agent-policy
@@ -74,7 +76,7 @@ dsh plugin --profile web add link:$PWD/plugins/dsh-agent-registry
 
 删除 Agent = 归档绑定，不删目录、不删会话日志。重命名只改管理名，不改写 SOUL / AGENTS / USER。
 
-官方「设置 → Agent 预设」仍是官方四个。Claw 的 `wa-*` 不会出现在那里，也不会闪进工作区的模式选择。
+官方「设置 → Agent 预设」仍是官方四个。Claw 的 `wa-*` 不会出现在那里，也不会再挂成孤立组合。启动登记插件时，残留的 `wa-*` 用户预设和旧会话日志会迁到官方 `standard`。
 
 ## 卸掉
 

@@ -1,6 +1,6 @@
 # 架构
 
-本文说明合集里七个插件如何叠在一起。实现细节以各插件仓库为准。
+本文说明合集里的插件如何叠在一起。实现细节以各插件仓库为准。
 
 ## 总览
 
@@ -19,6 +19,10 @@ flowchart TB
   Gate --> Sandbox["官方 sandbox / approval"]
   Gate --> Audit["~/.dsh/agent-gate/audit.jsonl"]
   Claw --> Delegate["dsh-agent-delegate<br/>深度 / 角色 / worktree"]
+  Registry --> Observe["dsh-observability<br/>diag.jsonl"]
+  Gate --> Observe
+  Delegate --> Observe
+  Memory --> Observe
 
   Official --> MainBrief["Main 只注入各 Agent 的脱敏 MEMORY 摘要"]
   Memory --> MainBrief
@@ -40,10 +44,11 @@ Claw Agent 的稳定事实是 **slug（名字）→ 目录 → 会话**，不是
 | `~/.dsh/agent-policy/defaults.json` | 新 Agent 的 MCP 初始化默认 |
 | `~/.dsh/agent-memory/settings.json` | 记忆审批 / 回顾开关 |
 | `~/.dsh/agent-gate/audit.jsonl` | 闸的审计 |
+| `~/.dsh/agent-observe/diag.jsonl` | 套件诊断（不含 prompt / 人设正文 / 工具参数） |
 
-创建 Agent 时从用户预设模板 `wa-template`（显示名 **claw区agent模板**）复制出 `wa-<slug>`，新会话带上这个预设。删除 = 归档绑定。重命名只改管理名，不改写人设文件。
+创建 Agent 时在 `DSclaw/<slug>/` 落下人设目录，会话挂官方 `standard`。`wa-*` 只是登记标签，不再写成用户预设、也不再 remount 孤立组合。删除 = 归档绑定。重命名只改管理名，不改写人设文件。
 
-官方工作区列表和会话搜索会丢掉 Claw 项，避免它们掉进「未分组」。官方「Agent 预设」名单也不返回 `wa-*`。缺了的 `wa-*` 在解析时回落到官方 `standard`，避免空白会话报 `preset not found`。
+官方工作区列表和会话搜索会丢掉 Claw 项，避免它们掉进「未分组」。官方「Agent 预设」名单也不返回 `wa-*`。启动时若还留着旧的 `wa-*` 用户预设或会话 last-selected，登记插件会改写到 `standard`。
 
 ## 权限怎么算
 

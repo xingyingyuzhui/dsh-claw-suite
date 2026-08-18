@@ -19,3 +19,6 @@
 [submodule "plugins/dsh-agent-memory"]
 	path = plugins/dsh-agent-memory
 	url = https://github.com/xingyingyuzhui/dsh-agent-memory.git
+[submodule "plugins/dsh-observability"]
+	path = plugins/dsh-observability
+	url = https://github.com/xingyingyuzhui/dsh-observability.git
