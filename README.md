@@ -16,6 +16,8 @@
 
 左侧会话标题是两个按钮：**工作区** / **Claw区**。只有在 Claw 区显式创建的 Agent 才会出现在那里；普通项目不会被收进去。
 
+![Claw 区会话。闸拦住桌面路径，人设红线不能改系统权限。](docs/images/claw-zone.jpg)
+
 ## 插件
 
 | 插件 | 职责 | 不做什么 |
@@ -68,11 +70,22 @@ dsh plugin --profile web add link:$PWD/plugins/dsh-agent-registry
 
 ## 使用
 
-1. 打开 **设置 → Claw Agent**（在官方「Agent 预设」上方）。
-2. 新建 Agent。目录落在 `~/.dsh/DSclaw/<名字>/`，默认套 **research** 只读模板，可再逐项改。
+1. 打开 **设置 → Claw Agent**（在官方「Agent 预设」上方）。**核心** tab 改这个 Agent 的 SOUL / AGENTS 等人设文件。
+
+   ![设置 → Claw Agent → 核心：编辑 AGENTS.md。](docs/images/settings-identity.jpg)
+
+2. 新建 Agent。目录落在 `~/.dsh/DSclaw/<名字>/`，默认套 **research** 只读模板，可再逐项改。设置页的 **权限** tab 管这个 Agent 的天花板。
+
+   ![设置 → Claw Agent → 权限：按面改这个 Agent 的策略。](docs/images/settings-policy.jpg)
+
 3. 左侧切到 **Claw区**，在该 Agent 下开新会话。
 4. 会话里的 **权限** tab 看本轮有效天花板；设置页的权限 / 人设 / 模型 / 技能 / 记忆管这个 Agent。
+
+   ![会话「权限」tab：本轮官方 ∩ Agent ∩ 会话。](docs/images/session-permissions.jpg)
+
 5. **设置 → 审计** 按时间、结果、工具类型、Agent 筛选，并可导出当前筛选结果。
+
+   ![设置 → 审计：闸钉下的沙箱记录。](docs/images/settings-audit.jpg)
 
 删除 Agent = 归档绑定，不删目录、不删会话日志。重命名只改管理名，不改写 SOUL / AGENTS / USER。
 
