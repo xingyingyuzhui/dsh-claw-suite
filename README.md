@@ -83,7 +83,7 @@ dsh plugin --profile web add link:$PWD/plugins/dsh-agent-registry
 
    ![会话「权限」tab：本轮官方 ∩ Agent ∩ 会话。](docs/images/session-permissions.jpg)
 
-5. **设置 → 审计** 按时间、结果、工具类型、Agent 筛选，并可导出当前筛选结果。
+5. **设置 → 审计** 按时间、结果、工具类型、Agent 筛选，并可导出当前筛选结果。**运行诊断** 看套件自己的错误码 / `traceId` 时间线。
 
    ![设置 → 审计：闸钉下的沙箱记录。](docs/images/settings-audit.jpg)
 
@@ -95,7 +95,7 @@ dsh plugin --profile web add link:$PWD/plugins/dsh-agent-registry
 
 每个插件可单独 `dsh plugin --profile web remove <名字>`。
 
-- 卸掉闸：不再拦截新调用，回落到 DSH 原有 permission-presets，**不会变成全开**。已经写进会话日志的 `sandbox/mode` 还在。
+- 卸掉闸：不再拦截新调用。官方文件沙箱由权限插件继续钉（只紧不松），**不会变成全开**。MCP / 技能 / 路径拦截会停。
 - 卸掉人设 / 记忆：文件留在盘上，只是不再注入、不再回顾。
 - 卸掉登记：官方工作区和四个预设照旧。
 

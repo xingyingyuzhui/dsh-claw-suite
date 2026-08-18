@@ -68,13 +68,13 @@ Claw 会话：官方预设 ∩ Claw 硬顶 ∩ Agent 策略 ∩ 本会话覆盖
 - 发布工具可以打开
 - 审批不能是 `never`
 
-官方沙箱按有效策略钉死：
+官方沙箱按有效策略钉死（`dsh-session-permissions` 写 `sandbox/mode`，只紧不松）：
 
 - `files.write === all` **且** `shell === allow` → `danger-full-access`（Claw 到不了这一档）
 - 否则有写入 → `workspace-write`
 - 否则 → `read-only`
 
-闸在 `tools/pre-execute` 解释并拦截，在 `tools.guard` 做最终拒绝。拒绝回执要求模型不要换个说法重试。需要时走官方一次性审批；批准绑定这一次调用身份，改参数要重新问。
+闸在 `tools/pre-execute` 解释并拦截，在 `tools.guard` 做最终拒绝。拒绝回执要求模型不要换个说法重试。需要时走官方一次性审批；批准绑定这一次调用身份，改参数要重新问。卸掉闸、权限插件还在时，新 Claw 会话仍会钉沙箱。
 
 技能拒绝名单会从该会话的官方技能目录和 `/` 选单里拿掉，不只拦 `skill` 工具。
 
@@ -105,6 +105,7 @@ Skill 只影响模型看得见的说明，不增加文件或 Shell 权限。
 - 未结束的 child / 并行写入任务有并发上限
 - 同一任务更新一代后，旧 child 的回报作废
 - **仅**写入型 child 和后台写入任务进独立 Git worktree；主会话和前台 bash 继续写项目根
+- 写入型 child 结束留下 pending patch；父任务用 `delegate_handoff` 验收后才合入，冲突则停住
 - 写入型 child 的 `files.write: all` 会收到 `workspace`
 - `research` / `reviewer` / `public`（或 `sandbox.requireEnforcement: full`）在 sandbox 报告 `partial` 时拒绝文件动作，不降级放行
 
