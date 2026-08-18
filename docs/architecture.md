@@ -73,6 +73,8 @@ Claw 会话：官方预设 ∩ Claw 硬顶 ∩ Agent 策略 ∩ 本会话覆盖
 
 技能拒绝名单会从该会话的官方技能目录和 `/` 选单里拿掉，不只拦 `skill` 工具。
 
+MCP 工具名是 `mcp__<服务>__<工具>`。`none` 全关；`explicit` 只放行 Agent 名单上的服务；`init-defaults` 在未写名单时放行，写了就按名单。闸会拒绝未授权服务，并在会话开始时从模型可见工具里拿掉它们。MCP 不再跟文件写/终端绑在一起：只读 Agent 仍可用初始化默认可调的检索类 MCP。
+
 工具名按 OpenClaw：`read` / `write` / `edit` / `apply_patch` / `exec`（DSH 的 `bash` 是别名）。`str_replace_editor` 按 `command` 映射。bash 整类按 Shell 面拦截，不拆命令里的路径。
 
 ## 预设模板
