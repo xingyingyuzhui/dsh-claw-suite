@@ -74,7 +74,7 @@ dsh plugin --profile web add link:$PWD/plugins/dsh-agent-registry
 
    ![设置 → Claw Agent → 核心：编辑 AGENTS.md。](docs/images/settings-identity.jpg)
 
-2. 新建 Agent。侧栏填的是管理名（文件夹），目录落在 `~/.dsh/DSclaw/<slug>/`。它自己叫什么、怎么称呼你，第一次对话按 `BOOTSTRAP.md` 问，写进 `IDENTITY.md` / `USER.md`。常驻默认在 **设置 → Claw Agent → Claw Agent模板**（出厂是只读 `research`）。仪式未完成时仍可问名字、写人设；结束后按模板收权。设置页的 **权限** tab 管这个 Agent 的天花板。
+2. 新建 Agent。侧栏填的是管理名（文件夹），目录落在 `~/.dsh/DSclaw/<slug>/`。它自己叫什么、怎么称呼你，第一次对话按 `BOOTSTRAP.md` 问，写进 `IDENTITY.md` / `USER.md`。常驻默认在 **设置 → Claw Agent模板**（出厂是只读 `research`），不是某个 Agent 自己的页。仪式未完成时仍可问名字、写人设；结束后按模板收权。设置页的 **权限** tab 管这个 Agent 的天花板。
 
    ![设置 → Claw Agent → 权限：按面改这个 Agent 的策略。](docs/images/settings-policy.jpg)
 
