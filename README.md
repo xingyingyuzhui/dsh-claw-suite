@@ -52,6 +52,8 @@ dsh plugin --profile web add github:xingyingyuzhui/dsh-agent-memory
 
 装完重启 `dsh web`。
 
+原生 Windows 可装；闸按 PowerShell / `cmd` 拆路径。要 POSIX 语义用 WSL。
+
 不要对本仓库执行 `dsh plugin add github:xingyingyuzhui/dsh-claw-suite`：合集根目录不是一个 bundle。
 
 ### 从合集检出源码
