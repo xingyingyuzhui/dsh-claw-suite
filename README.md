@@ -54,6 +54,12 @@ dsh plugin --profile web add github:xingyingyuzhui/dsh-agent-memory
 
 原生 Windows 可装；闸按 PowerShell / `cmd` 拆路径。要 POSIX 语义用 WSL。
 
+## DSH 兼容
+
+当前套件适配 DeepSeek Harness **`0.1.6-alpha.1+`**：闸 / 权限 / 委派 / 记忆的会话初始化统一挂在串行的 `agent/created`（可返回 Promise，首次模型请求会等监听器结束）。`agent/session-start` 已移除，勿再订阅。
+
+对应版本：`dsh-agent-gate@0.1.14`、`dsh-agent-delegate@0.2.10`、`dsh-agent-memory@0.1.10`、`dsh-session-permissions@0.2.30`。
+
 不要对本仓库执行 `dsh plugin add github:xingyingyuzhui/dsh-claw-suite`：合集根目录不是一个 bundle。
 
 ### 从合集检出源码
