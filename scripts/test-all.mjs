@@ -3,7 +3,8 @@
  * Run `npm test` in each runtime component + core; collect all results; exit non-zero if any fail.
  */
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { listRuntimePackages, SUITE_ROOT } from '../contract/package-shape.mjs'
@@ -20,12 +21,15 @@ function main() {
       continue
     }
     console.log(`\n=== npm test (${name}) ===`)
+    const home = mkdtempSync(join(tmpdir(), `claw-test-${name}-`))
     const r = spawnSync('npm', ['test'], {
       cwd: dir,
       encoding: 'utf8',
       stdio: 'inherit',
       shell: process.platform === 'win32',
+      env: { ...process.env, DSH_HOME: home },
     })
+    rmSync(home, { recursive: true, force: true })
     results.push({
       name,
       status: r.status === 0 ? 'pass' : 'fail',

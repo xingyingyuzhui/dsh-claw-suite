@@ -3,8 +3,8 @@
  * Scan suite component sources for forbidden RC2 APIs.
  * Exit 1 when any forbidden pattern remains (M0 gate — red until fixed).
  */
-import { readFileSync } from 'node:fs'
-import { relative } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { CLIENT_FORBIDDEN_PATTERNS } from '../contract/v02-client-contract.mjs'
 import { HOST_FORBIDDEN_PATTERNS } from '../contract/v02-host-contract.mjs'
@@ -49,10 +49,39 @@ export function scanForbiddenApis(suiteRoot = SUITE_ROOT) {
   return hits
 }
 
+/** Cordis context members that are not services and need no `inject` entry. */
+const CTX_BUILTINS = new Set(['get', 'set', 'effect', 'on', 'off', 'emit', 'plugin', 'provide', 'inject', 'scope', 'root', 'runtime'])
+
+/**
+ * A Client touching `ctx.X` or `ctx.remote.Y` without declaring `X` / `remote.Y` in `inject`
+ * throws at runtime ("cannot get property ... without inject"); fake-ctx unit tests never see it.
+ */
+export function scanClientInjects(suiteRoot = SUITE_ROOT) {
+  const hits = []
+  for (const { name, dir } of listRuntimePackages(suiteRoot)) {
+    const file = join(dir, 'client.js')
+    if (!existsSync(file)) continue
+    const src = readFileSync(file, 'utf8')
+    const decl = src.match(/inject = \[([^\]]*)\]/)
+    const injected = new Set(decl ? [...decl[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : [])
+    const used = new Set()
+    for (const m of src.matchAll(/\bctx\.([A-Za-z_]\w*)(?:\.([A-Za-z_]\w*))?/g)) {
+      if (CTX_BUILTINS.has(m[1])) continue
+      used.add(m[1])
+      if (m[1] === 'remote' && m[2]) used.add(`remote.${m[2]}`)
+    }
+    for (const id of [...used].sort()) {
+      if (injected.has(id)) continue
+      hits.push({ package: name, file: relative(suiteRoot, file), line: 0, id: 'client.inject', match: id, text: `ctx.${id} used but not in inject` })
+    }
+  }
+  return hits
+}
+
 function main() {
-  const hits = scanForbiddenApis()
+  const hits = [...scanForbiddenApis(), ...scanClientInjects()]
   if (hits.length === 0) {
-    console.log('verify-rc2-contract: OK (no forbidden APIs)')
+    console.log('verify-rc2-contract: OK (no forbidden APIs, client injects complete)')
     process.exit(0)
   }
   console.error(`verify-rc2-contract: FAIL (${hits.length} violation(s))`)
