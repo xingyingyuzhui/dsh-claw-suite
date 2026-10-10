@@ -25,6 +25,20 @@ const SKIP_DIR = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', 
 
 export const META_PACKAGE = 'dsh-claw-suite'
 
+/** Leaves first: each package's dsh-claw-* deps are staged before it. */
+export const INSTALL_ORDER = Object.freeze([
+  'dsh-claw-core',
+  'dsh-claw-policy',
+  'dsh-claw-observability',
+  'dsh-claw-identity',
+  'dsh-claw-permissions',
+  'dsh-claw-memory',
+  'dsh-claw-gate',
+  'dsh-claw-delegate',
+  'dsh-claw-registry',
+  META_PACKAGE,
+])
+
 /** Collection repo keeps components under plugins/; the flat dev workspace keeps them at the root. */
 export function componentDir(suiteRoot, name) {
   const nested = join(suiteRoot, 'plugins', name)

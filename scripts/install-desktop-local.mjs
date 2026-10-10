@@ -1,51 +1,56 @@
 #!/usr/bin/env node
 /**
- * Install dsh-claw-suite@0.3.0-rc.1 (scheme A meta + components) into the
- * Desktop profile via local tarballs. Does NOT publish.
+ * Install dsh-claw-suite (scheme A meta + components) into a DSH profile from local tarballs.
+ * Does NOT publish and never touches the npm registry for dsh-claw-* packages.
  *
- * Desktop rejects relative file: for nested deps — every claw package is
- * restaged so its dsh-claw-* dependencies use absolute file: URLs.
+ * The profile manifest keeps an exact semver pin (Desktop rejects file:/link: there); a pnpm
+ * override in the profile's pnpm-workspace.yaml points that pin at the local tarball so later
+ * installs in the same profile (e.g. adding another plugin from the GUI) still resolve offline.
+ * Every claw tarball is restaged so its dsh-claw-* dependencies use absolute file: URLs.
  *
- *   node scripts/install-desktop-local.mjs
+ *   node scripts/install-desktop-local.mjs                    # release bundle: ./packages; else source tree
+ *   node scripts/install-desktop-local.mjs --from <dir>       # prebuilt tarballs elsewhere
  *   node scripts/install-desktop-local.mjs --uninstall
+ *   DSH_HOME=~/.dsh-claw-lab node scripts/install-desktop-local.mjs --profile web-claw-v02
  */
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import {
-  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { META_PACKAGE as META, componentDir, metaDir } from '../contract/package-shape.mjs'
+import { INSTALL_ORDER, META_PACKAGE as META, componentDir, metaDir } from '../contract/package-shape.mjs'
+import { removeOverrides, setOverride } from './profile-overrides.mjs'
 
 const suiteRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
-const profile = join(homedir(), '.dsh', 'profiles', 'desktop')
-const localDir = join(profile, '.dsh-local-plugins')
-const DESKTOP_PROFILE_BUNDLES = ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app']
 
-function packageDir(name) {
-  return name === META ? metaDir(suiteRoot) : componentDir(suiteRoot, name)
+function argValue(flag) {
+  const index = process.argv.indexOf(flag)
+  return index > 0 ? process.argv[index + 1] : undefined
 }
 
-/** Build order: leaves first so restage can point at absolute tarballs. */
-const PACKAGES = [
-  'dsh-claw-core',
-  'dsh-claw-policy',
-  'dsh-claw-observability',
-  'dsh-claw-identity',
-  'dsh-claw-permissions',
-  'dsh-claw-memory',
-  'dsh-claw-gate',
-  'dsh-claw-delegate',
-  'dsh-claw-registry',
-  'dsh-claw-suite',
-]
+const profileName = argValue('--profile') ?? 'desktop'
+const bundledPackages = join(suiteRoot, 'packages')
+const fromDir = argValue('--from')
+  ? resolve(argValue('--from'))
+  : existsSync(bundledPackages) ? bundledPackages : undefined
+const uninstall = process.argv.includes('--uninstall')
+const profile = join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'profiles', profileName)
+const localDir = join(profile, '.dsh-local-plugins')
+const workspaceFile = join(profile, 'pnpm-workspace.yaml')
+const manifestPath = join(profile, 'package.json')
+const DESKTOP_PROFILE_BUNDLES = ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app']
+
+const PACKAGES = INSTALL_ORDER
 
 const LEGACY_NAMES = [
   'dsh-agent-registry',
@@ -63,20 +68,20 @@ const LEGACY_NAMES = [
   ...PACKAGES.filter((n) => n !== META),
 ]
 
-const uninstall = process.argv.includes('--uninstall')
-
 function die(msg, code = 1) {
   console.error(msg)
   process.exit(code)
 }
 
-if (!existsSync(join(profile, 'package.json'))) {
-  die(`Desktop profile missing: ${profile}`)
+function isClawRow(name) {
+  return LEGACY_NAMES.includes(name) || name === META || name.startsWith('dsh-claw-')
 }
 
-const running = spawnSync('pgrep', ['-f', 'DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness'], {
-  encoding: 'utf8',
-})
+if (!existsSync(manifestPath)) die(`profile missing: ${profile}`)
+
+const running = profileName === 'desktop'
+  ? spawnSync('pgrep', ['-f', 'DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness'], { encoding: 'utf8' })
+  : { status: 1 }
 if (running.status === 0) {
   die('Quit DeepSeek Harness completely (Cmd+Q) before mutating the Desktop profile.', 2)
 }
@@ -85,12 +90,15 @@ mkdirSync(localDir, { recursive: true })
 
 const staged = {}
 
-function packOne(name) {
-  const dir = packageDir(name)
+function sourceDir(name) {
+  return name === META ? metaDir(suiteRoot) : componentDir(suiteRoot, name)
+}
+
+function packFromSource(name) {
+  const dir = sourceDir(name)
   if (!existsSync(join(dir, 'package.json'))) die(`missing package dir ${dir}`)
   const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
-  const file = `${name}-${pkg.version}.tgz`
-  const dest = join(localDir, file)
+  const dest = join(localDir, `${name}-${pkg.version}.tgz`)
   const cache = mkdtempSync(join(tmpdir(), 'npm-cache-'))
   try {
     const pack = spawnSync('npm', ['pack', '--cache', cache, '--pack-destination', localDir], {
@@ -106,45 +114,55 @@ function packOne(name) {
     rmSync(cache, { recursive: true, force: true })
   }
   if (!existsSync(dest)) die(`expected ${dest}`)
-  staged[name] = {
-    version: pkg.version,
-    dest,
-    rel: `file:./.dsh-local-plugins/${file}`,
-    abs: `file:${dest}`,
-  }
+  return dest
 }
 
-function restageWithAbsoluteDeps(name) {
-  const pkgPathOnDisk = join(packageDir(name), 'package.json')
-  const original = JSON.parse(readFileSync(pkgPathOnDisk, 'utf8'))
-  const depNames = Object.keys(original.dependencies || {}).filter((d) => d.startsWith('dsh-claw-'))
-  if (depNames.length === 0) return
+/** Exactly one `<name>-<semver>.tgz` must exist in the prebuilt directory. */
+function prebuiltTarball(name) {
+  const pattern = new RegExp(`^${name.replace(/[-]/g, '\\-')}-(\\d+\\.\\d+\\.\\d+[^/]*)\\.tgz$`)
+  const matches = readdirSync(fromDir).filter((file) => pattern.test(file))
+  if (matches.length !== 1) die(`--from ${fromDir}: expected exactly one ${name}-<version>.tgz, found ${matches.length}`)
+  return join(fromDir, matches[0])
+}
 
-  const depMap = {}
-  for (const dep of depNames) {
-    if (!staged[dep]) die(`restage ${name}: missing staged dep ${dep}`)
-    depMap[dep] = staged[dep].abs
-  }
-
+/** Extract, point dsh-claw-* deps at already-staged absolute tarballs, repack with a content hash. */
+function stage(name, tarball) {
   const stagingDir = mkdtempSync(join(tmpdir(), `claw-desktop-${name}-`))
   try {
-    const extract = spawnSync('tar', ['-xzf', staged[name].dest, '-C', stagingDir], { encoding: 'utf8' })
+    const extract = spawnSync('tar', ['-xzf', tarball, '-C', stagingDir], { encoding: 'utf8' })
     if (extract.status !== 0) die(extract.stderr || `tar extract failed for ${name}`)
     const pkgPath = join(stagingDir, 'package', 'package.json')
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
-    pkg.dependencies = { ...(pkg.dependencies || {}), ...depMap }
+    if (pkg.name !== name) die(`${tarball}: package name is ${pkg.name}, expected ${name}`)
+    const deps = { ...(pkg.dependencies || {}) }
+    for (const dep of Object.keys(deps).filter((d) => d.startsWith('dsh-claw-'))) {
+      if (!staged[dep]) die(`stage ${name}: missing staged dep ${dep}`)
+      if (deps[dep] !== staged[dep].version) {
+        die(`stage ${name}: depends on ${dep}@${deps[dep]} but ${staged[dep].version} is staged`)
+      }
+      deps[dep] = `file:${staged[dep].dest}`
+    }
+    pkg.dependencies = deps
     writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
-    const out = join(localDir, `${name}-${pkg.version}.tgz`)
-    const packTar = spawnSync('tar', ['-czf', out, '-C', stagingDir, 'package'], { encoding: 'utf8' })
+    const repacked = join(stagingDir, 'out.tgz')
+    const packTar = spawnSync('tar', ['-czf', repacked, '-C', stagingDir, 'package'], { encoding: 'utf8' })
     if (packTar.status !== 0) die(packTar.stderr || `tar pack failed for ${name}`)
-    staged[name].dest = out
-    staged[name].rel = `file:./.dsh-local-plugins/${name}-${pkg.version}.tgz`
-    staged[name].abs = `file:${out}`
+    // pnpm keys file: tarballs by path and keeps the locked integrity, so a rebuilt tarball with an
+    // unchanged version would be silently ignored. A content hash in the filename forces re-resolution.
+    const hash = createHash('sha256').update(readFileSync(repacked)).digest('hex').slice(0, 10)
+    const file = `${name}-${pkg.version}-${hash}.tgz`
+    for (const old of readdirSync(localDir)) {
+      if (old !== file && old.startsWith(`${name}-`) && old.endsWith('.tgz')) rmSync(join(localDir, old), { force: true })
+    }
+    const dest = join(localDir, file)
+    renameSync(repacked, dest)
+    staged[name] = { version: pkg.version, dest }
   } finally {
     rmSync(stagingDir, { recursive: true, force: true })
   }
 }
 
+/** Other local plugins are pinned exactly in the manifest; feed pnpm their tarball when it exists. */
 function localFileSpec(name, spec) {
   const current = String(spec || '')
   if (current.startsWith('file:')) return current
@@ -160,16 +178,19 @@ function exactVersion(name, spec) {
 }
 
 function writeManifest(deps) {
-  const manifestPath = join(profile, 'package.json')
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
-  const plugins = Object.keys(deps).sort()
   manifest.dependencies = deps
   manifest.dsh = {
     ...(manifest.dsh || {}),
-    profile: { bundles: [...DESKTOP_PROFILE_BUNDLES, ...plugins] },
+    profile: { bundles: [...DESKTOP_PROFILE_BUNDLES, ...Object.keys(deps).sort()] },
   }
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
-  return manifest
+}
+
+function writeClawOverride(spec) {
+  const current = existsSync(workspaceFile) ? readFileSync(workspaceFile, 'utf8') : ''
+  const cleared = removeOverrides(current, isClawRow)
+  writeFileSync(workspaceFile, spec === undefined ? cleared : setOverride(cleared, META, spec))
 }
 
 function pnpmInstall() {
@@ -183,27 +204,24 @@ function pnpmInstall() {
   if (install.status !== 0) process.exit(install.status ?? 1)
 }
 
-function finalizeExact(installDeps) {
-  const exact = {}
-  for (const [name, spec] of Object.entries(installDeps)) {
-    exact[name] = exactVersion(name, spec)
-  }
+/** Install with local file specs, then pin every row back to an exact version for Desktop boot. */
+function installAndPin(installDeps) {
+  writeManifest(installDeps)
+  pnpmInstall()
+  const exact = Object.fromEntries(Object.entries(installDeps).map(([name, spec]) => [name, exactVersion(name, spec)]))
   writeManifest(exact)
   return exact
 }
 
-const manifestPath = join(profile, 'package.json')
 const previous = { ...(JSON.parse(readFileSync(manifestPath, 'utf8')).dependencies || {}) }
+const installDeps = {}
+for (const [name, spec] of Object.entries(previous)) {
+  if (!isClawRow(name)) installDeps[name] = localFileSpec(name, spec)
+}
 
 if (uninstall) {
-  const installDeps = {}
-  for (const [name, spec] of Object.entries(previous)) {
-    if (LEGACY_NAMES.includes(name) || name === META || name.startsWith('dsh-claw-')) continue
-    installDeps[name] = localFileSpec(name, spec)
-  }
-  writeManifest(installDeps)
-  pnpmInstall()
-  const exact = finalizeExact(installDeps)
+  writeClawOverride(undefined)
+  const exact = installAndPin(installDeps)
   console.log(JSON.stringify({
     event: 'dsh-claw-suite.desktop.uninstall',
     profile,
@@ -214,20 +232,13 @@ if (uninstall) {
 }
 
 for (const name of PACKAGES) {
-  packOne(name)
-  restageWithAbsoluteDeps(name)
+  stage(name, fromDir ? prebuiltTarball(name) : packFromSource(name))
 }
 
-const installDeps = {}
-for (const [name, spec] of Object.entries(previous)) {
-  if (LEGACY_NAMES.includes(name) || name === META || name.startsWith('dsh-claw-')) continue
-  installDeps[name] = localFileSpec(name, spec)
-}
-installDeps[META] = staged[META].rel
-
-writeManifest(installDeps)
-pnpmInstall()
-const exact = finalizeExact(installDeps)
+const metaSpec = `file:${staged[META].dest}`
+writeClawOverride(metaSpec)
+installDeps[META] = metaSpec
+const exact = installAndPin(installDeps)
 
 const nm = join(profile, 'node_modules')
 const present = Object.fromEntries(PACKAGES.map((name) => [name, existsSync(join(nm, name))]))
@@ -236,7 +247,9 @@ const allPresent = PACKAGES.every((name) => present[name])
 console.log(JSON.stringify({
   event: 'dsh-claw-suite.desktop.local-install',
   profile,
+  source: fromDir ?? 'source tree',
   package: `${META}@${staged[META].version}`,
+  override: metaSpec,
   nodeModules: present,
   bundles: [...DESKTOP_PROFILE_BUNDLES, ...Object.keys(exact).sort()],
   ok: allPresent,
