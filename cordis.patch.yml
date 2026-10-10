@@ -1,0 +1,22 @@
+# dsh-claw-suite meta bundle (scheme A).
+# Rows name dependency package ids so Desktop composes all claw components from one install.
+# dsh-claw-core is a library dependency only (no Host row).
+- insert:
+    - id: dsh-claw-suite
+      name: dsh-claw-suite
+    - id: dsh-claw-policy
+      name: dsh-claw-policy
+    - id: dsh-claw-permissions
+      name: dsh-claw-permissions
+    - id: dsh-claw-observability
+      name: dsh-claw-observability
+    - id: dsh-claw-identity
+      name: dsh-claw-identity
+    - id: dsh-claw-memory
+      name: dsh-claw-memory
+    - id: dsh-claw-gate
+      name: dsh-claw-gate
+    - id: dsh-claw-delegate
+      name: dsh-claw-delegate
+    - id: dsh-claw-registry
+      name: dsh-claw-registry

@@ -1,0 +1,6 @@
+# dsh bundle layer: M0 Loader probe mono (scheme B — subpath rows).
+- insert:
+    - id: dsh-claw-loader-probe-mono
+      name: dsh-claw-loader-probe-mono
+    - id: dsh-claw-loader-probe-mono-row-a
+      name: dsh-claw-loader-probe-mono/row-a

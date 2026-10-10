@@ -7,19 +7,19 @@
 ```mermaid
 flowchart TB
   User["用户"] --> Sidebar["侧栏：工作区 / Claw区"]
-  Sidebar --> Registry["dsh-agent-registry"]
+  Sidebar --> Registry["dsh-claw-registry"]
   Registry --> Official["官方工作区会话"]
   Registry --> Claw["Claw 会话 · cwd = ~/.dsh/DSclaw/名字"]
 
-  Claw --> Identity["dsh-agent-identity<br/>SOUL / IDENTITY / AGENTS / TOOLS"]
-  Claw --> Memory["dsh-agent-memory<br/>USER / MEMORY / 日记"]
-  Claw --> Perms["dsh-session-permissions<br/>官方 ∩ Agent ∩ 本会话"]
-  Perms --> Policy["dsh-agent-policy<br/>schema 与预设模板"]
-  Perms --> Gate["dsh-agent-gate<br/>pre-execute + guard + 审批"]
+  Claw --> Identity["dsh-claw-identity<br/>SOUL / IDENTITY / AGENTS / TOOLS"]
+  Claw --> Memory["dsh-claw-memory<br/>USER / MEMORY / 日记"]
+  Claw --> Perms["dsh-claw-permissions<br/>官方 ∩ Agent ∩ 本会话"]
+  Perms --> Policy["dsh-claw-policy<br/>schema 与预设模板"]
+  Perms --> Gate["dsh-claw-gate<br/>pre-execute + guard + 审批"]
   Gate --> Sandbox["官方 sandbox / approval"]
   Gate --> Audit["~/.dsh/agent-gate/audit.jsonl"]
-  Claw --> Delegate["dsh-agent-delegate<br/>深度 / 角色 / worktree"]
-  Registry --> Observe["dsh-observability<br/>diag.jsonl"]
+  Claw --> Delegate["dsh-claw-delegate<br/>深度 / 角色 / worktree"]
+  Registry --> Observe["dsh-claw-observability<br/>diag.jsonl"]
   Gate --> Observe
   Delegate --> Observe
   Memory --> Observe
@@ -68,7 +68,7 @@ Claw 会话：官方预设 ∩ Claw 硬顶 ∩ Agent 策略 ∩ 本会话覆盖
 - 发布工具可以打开
 - 审批不能是 `never`
 
-官方沙箱按有效策略钉死（`dsh-session-permissions` 写 `sandbox/mode`，只紧不松）：
+官方沙箱按有效策略钉死（`dsh-claw-permissions` 写 `sandbox/mode`，只紧不松）：
 
 - `files.write === all` **且** `shell === allow` → `danger-full-access`（Claw 到不了这一档）
 - 否则有写入 → `workspace-write`
@@ -90,7 +90,7 @@ Skill 只影响模型看得见的说明，不增加文件或 Shell 权限。
 
 ## 人设与记忆
 
-`dsh-agent-identity` 只在 session cwd 位于 `DSclaw` 下时注入人设。`USER.md` / `MEMORY.md` / 日记由 `dsh-agent-memory` 在开场注入。
+`dsh-claw-identity` 只在 session cwd 位于 `DSclaw` 下时注入人设。`USER.md` / `MEMORY.md` / 日记由 `dsh-claw-memory` 在开场注入。
 
 记忆插件另外提供 `memory` 工具（只挂在 Claw 会话）。回合结束后可做回顾；听到官方 `session/event` 的 `compaction/start` 时立刻把该写的写入金库。可设自由写或需审批。
 
@@ -98,7 +98,7 @@ Skill 只影响模型看得见的说明，不增加文件或 Shell 权限。
 
 ## 委派
 
-`dsh-agent-delegate` 叠在官方 `ctx.subagents` 上：
+`dsh-claw-delegate` 叠在官方 `ctx.subagents` 上：
 
 - 按父链计数深度，超过 `delegation.maxDepth` 拒绝（developer 默认 1）
 - 角色必须在 `delegation.roles` 里；child = parent ∩ 角色预设

@@ -1,0 +1,8 @@
+# dsh bundle layer: M0 Loader probe suite (scheme A meta).
+# Rows reference dependency package ids so Desktop can be tested for
+# "install meta → resolve dependency Host modules" behavior.
+- insert:
+    - id: dsh-claw-loader-probe-suite
+      name: dsh-claw-loader-probe-suite
+    - id: dsh-claw-loader-probe-a
+      name: dsh-claw-loader-probe-a
