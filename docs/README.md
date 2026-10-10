@@ -1,8 +1,8 @@
 # DSH Claw 治理套件（源码）
 
-Claw Agent 的登记、人设、权限、闸、委派、记忆、诊断。发布身份统一为 `dsh-claw-*@0.3.0-rc.1`（scheme A meta）。
+Claw Agent 的登记、人设、权限、闸、委派、记忆、诊断。10 个包版本号一致、互相精确钉死（scheme A meta），用 `scripts/bump-version.mjs` 统一改。
 
-开发工作区是 monorepo（npm workspaces）。每个组件仍可单独发布；**用户只装 meta bundle**。
+开发工作区是 monorepo（npm workspaces）。**用户只装 meta bundle**。
 
 | 包 | 职责 |
 |---|---|
@@ -21,13 +21,13 @@ Claw Agent 的登记、人设、权限、闸、委派、记忆、诊断。发布
 
 ## 安装（产品）
 
-```sh
-dsh plugin add dsh-claw-suite@0.3.0-rc.1
-```
+暂不发 npm。发版走 GitHub Release：`npm run release:bundle` 生成 `dist/dsh-claw-suite-<版本>.tar.gz`（10 个 npm tarball + 安装脚本 + `SHA256SUMS`），作为 Release 附件上传。用户解压后跑 `node scripts/install-desktop-local.mjs`，见根目录 README「安装」。
+
+GitHub 自动生成的源码压缩包不含 submodule，不能当安装包用。
 
 不要逐个安装 8+1 组件。旧 `dsh-agent-*` / `dsh-session-permissions` / `dsh-observability` 与新套件不得同时 ACTIVE。
 
-本地开发可 `npm install` 于本工作区根，再按需 `npm pack` / Desktop lab。
+本地开发在本工作区根 `npm install`，改完 `npm run install:desktop` 或 `DSH_HOME=… node scripts/install-desktop-local.mjs --profile <lab>` 装进实验 profile。
 
 ## DSH 兼容
 

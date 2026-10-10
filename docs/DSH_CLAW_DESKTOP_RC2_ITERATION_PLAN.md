@@ -223,6 +223,8 @@ settings.mutate('agent-presets', [{ op: 'unset', path: ['default'] }])
 - `register()` 返回的 disposer 由 Registry 按 agent 保存；archive 不注销 preset，只有永久删除 agent 且确认没有 session 引用该 preset 时才 dispose。
 - 重启后先重建 `wa-*` 声明，再恢复相应 session；旧 session 保存的是 preset id，没有同 id 声明时必须显式 degraded，不能退回默认 preset。
 
+> **实现说明（0.3.0-rc.2，[ADR-0002](ADR-0002-settings-compat-entry.md)）：** `wa-template` 在 0.2 上默认不存在，底稿按 `wa-template` → `standard` → 非 Claw 默认预设取第一个可用者。官方 `entryListSchema` 在插件里 import 不到，用 `js-yaml` 复刻同一 `!!js` 方言（`{ __jsExpr }`）。开会话前走 `/api/dsh-claw/registry/preset/ensure`，失败记 `REGISTRY_PRESET_UNAVAILABLE` 并阻断，不回退。
+
 建议将 `clearClawDefault()` 重命名为 `clearSelectedClawDefault()`，避免继续表达错误语义：
 
 ```js

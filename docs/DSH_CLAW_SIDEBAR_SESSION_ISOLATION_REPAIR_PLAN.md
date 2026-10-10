@@ -158,6 +158,8 @@ Claw Registry 不得探测其他插件是否安装后再条件注册通用动作
 
 这意味着：`0.2.0-rc.2` 可以完成数据层和测试准备，但**完整 UI 修复的兼容地板必须提升到包含 Browser Mode seam 的下一官方版本**。在官方版本号产生前，计划中记作 `<MODE_SEAM_VERSION>`；发布时必须替换为真实 exact/minimum semver，不能保留占位符。
 
+> **2026-10-10 修订（[ADR-0002](ADR-0002-settings-compat-entry.md)）：** 官方至 `dsh-v0.2.1-alpha.2` 仍无此 seam，且不收外部 PR。0.3.0 起在没有 seam 的 DSH 上，Claw 区以明示的兼容面板放在「设置 → Claw Agent」，检测到 seam 时自动改用侧栏。本节“拒绝 DOM 补丁”的结论不变；peer 下限维持 `^0.2.0-rc.1`，`<MODE_SEAM_VERSION>` 只用于侧栏模式的兼容表。
+
 ---
 
 ## 4. 目标架构
