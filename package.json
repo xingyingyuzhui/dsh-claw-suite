@@ -1,0 +1,63 @@
+{
+  "name": "dsh-claw-suite",
+  "version": "0.3.0-rc.2",
+  "description": "DeepSeek Harness Claw governance suite: meta bundle (install this one package) plus component sources as submodules. Claw 治理套件总入口。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "claw"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xingyingyuzhui/dsh-claw-suite.git"
+  },
+  "type": "module",
+  "main": "./host.js",
+  "exports": {
+    ".": "./host.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "host.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "plugins/*"
+  ],
+  "scripts": {
+    "test": "node scripts/test-all.mjs",
+    "test:contract": "node scripts/verify-rc2-contract.mjs",
+    "test:contract-unit": "node --test contract/test/*.test.mjs",
+    "test:graph": "node scripts/verify-package-graph.mjs",
+    "test:floor": "node scripts/verify-version-floor.mjs",
+    "test:gates": "node scripts/verify-rc2-contract.mjs && node scripts/verify-package-graph.mjs && node scripts/verify-version-floor.mjs && node --test contract/test/*.test.mjs",
+    "install:desktop": "node scripts/install-desktop-local.mjs",
+    "release:bundle": "node scripts/build-release.mjs"
+  },
+  "dependencies": {
+    "dsh-claw-policy": "0.3.0-rc.2",
+    "dsh-claw-permissions": "0.3.0-rc.2",
+    "dsh-claw-observability": "0.3.0-rc.2",
+    "dsh-claw-identity": "0.3.0-rc.2",
+    "dsh-claw-memory": "0.3.0-rc.2",
+    "dsh-claw-gate": "0.3.0-rc.2",
+    "dsh-claw-delegate": "0.3.0-rc.2",
+    "dsh-claw-registry": "0.3.0-rc.2",
+    "dsh-claw-core": "0.3.0-rc.2"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": "^0.2.0-rc.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

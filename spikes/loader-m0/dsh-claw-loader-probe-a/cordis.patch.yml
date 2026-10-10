@@ -1,0 +1,4 @@
+# dsh bundle layer: M0 Loader probe A (unpublished spike).
+- insert:
+    - id: dsh-claw-loader-probe-a
+      name: dsh-claw-loader-probe-a

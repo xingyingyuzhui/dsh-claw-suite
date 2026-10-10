@@ -1,0 +1,18 @@
+{
+  "name": "dsh-claw-loader-probe-core",
+  "version": "0.0.0-m0.1",
+  "description": "M0 Loader spike helper (unpublished). Marker paths for probe ACTIVE detection.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.mjs",
+    "README.md"
+  ],
+  "engines": { "node": ">=20" }
+}
